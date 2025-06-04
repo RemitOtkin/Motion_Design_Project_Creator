@@ -1,5 +1,5 @@
-**Motion Design Project Creator**
-Small app that allows to create a folder strucutre for user's Personal and Commercial Motion Design Projects. 
-Contains template files for Cinema 4D, After Effects, Premier and Houdini. 
+**Motion Design Project Creator** <br>
+<p>Small app that allows to create a folder strucutre for user's Personal and Commercial Motion Design Projects. 
+Contains template files for Cinema 4D, After Effects, Premier and Houdini. </p>
 
-Still work in progress. 
+<i>Still work in progress.</i> 
