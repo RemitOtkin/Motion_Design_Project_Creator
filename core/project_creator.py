@@ -12,7 +12,6 @@ from PyQt5.QtCore import QThread, pyqtSignal
 
 from config.translations import Translations
 from utils.resource_manager import resource_path
-from core.folder_structure_manager import FolderStructureManager
 
 
 class ProjectCreatorWorker(QThread):
@@ -40,14 +39,7 @@ class ProjectCreatorWorker(QThread):
         # Путь к папке с шаблонами
         self.templates_dir = resource_path("resources/templates")
         
-        # Инициализируем менеджер структуры папок
-        try:
-            self.folder_structure_manager = FolderStructureManager()
-        except Exception as e:
-            print(f"⚠️ Ошибка инициализации FolderStructureManager: {e}")
-            self.folder_structure_manager = None
-        
-        # Fallback структура папок
+        # Определяем структуру папок
         self.base_folders = [
             "01_IN/FOOTAGES",
             "01_IN/SFX", 
@@ -151,19 +143,26 @@ class ProjectCreatorWorker(QThread):
         """
         missing_templates = []
         
+        # Определяем соответствие инструментов и расширений файлов
+        tool_extensions = {
+            'ae': ('*.aep', 'After Effects (.aep)'),
+            'c4d': ('*.c4d', 'Cinema 4D (.c4d)'),
+            'pr': ('*.prproj', 'Premiere Pro (.prproj)'),        
+            'houdini': ('*.hip', 'Houdini (.hip)'),              
+            'blender': ('*.blend', 'Blender (.blend)'),          
+        }
+        
         for tool in self.project_data['tools']:
-            if tool == 'ae':
-                # Ищем любой .aep файл в папке templates
-                aep_files = glob.glob(os.path.join(self.templates_dir, "*.aep"))
-                if not aep_files:
-                    missing_templates.append("After Effects (.aep)")
-            elif tool == 'c4d':
-                # Ищем любой .c4d файл в папке templates
-                c4d_files = glob.glob(os.path.join(self.templates_dir, "*.c4d"))
-                if not c4d_files:
-                    missing_templates.append("Cinema 4D (.c4d)")
+            if tool in tool_extensions:
+                pattern, display_name = tool_extensions[tool]
+                template_files = glob.glob(os.path.join(self.templates_dir, pattern))
+                if not template_files:
+                    missing_templates.append(display_name)
+            else:
+                missing_templates.append(f"Неизвестный инструмент: {tool}")
         
         return missing_templates
+
     def _get_folder_list(self) -> List[str]:
         """
         Получает список папок для создания с учетом выбранных инструментов
@@ -171,30 +170,24 @@ class ProjectCreatorWorker(QThread):
         Returns:
             Список путей папок
         """
-        if self.folder_structure_manager:
-            try:
-                # Используем новый менеджер структуры
-                return self.folder_structure_manager.get_folder_list(self.project_data['tools'])
-            except Exception as e:
-                print(f"⚠️ Ошибка в менеджере структуры, используем fallback: {e}")
-        
-        # Fallback на старую логику
         folders = self.base_folders.copy()
         
-        # Добавляем папки для инструментов
+        # Определяем соответствие инструментов и папок
         tool_folders = {
             'ae': '02_PROCESS/AE',
             'c4d': '02_PROCESS/C4D',
-            'pr': '02_PROCESS/PR',
-            'houdini': '02_PROCESS/HOUDINI',
-            'blender': '02_PROCESS/BLENDER'
+            'pr': '02_PROCESS/PR',               
+            'houdini': '02_PROCESS/HOUDINI',     
+            'blender': '02_PROCESS/BLENDER',     
         }
         
+        # Добавляем папки для выбранных инструментов
         for tool in self.project_data['tools']:
             if tool in tool_folders:
                 folders.append(tool_folders[tool])
         
         return folders
+
     
     def _create_tool_project_file(self, project_path: str, project_name: str, tool: str) -> bool:
         """
@@ -203,26 +196,51 @@ class ProjectCreatorWorker(QThread):
         Args:
             project_path: Путь к проекту
             project_name: Имя проекта
-            tool: Инструмент ('ae' или 'c4d')
+            tool: Инструмент
             
         Returns:
             True если файл скопирован успешно
         """
         try:
-            if tool == 'ae':
-                # Ищем .aep файл в папке templates
-                template_files = glob.glob(os.path.join(self.templates_dir, "*.aep"))
-                destination_dir = os.path.join(project_path, "02_PROCESS/AE")
-                new_filename = f"{project_name}.aep"
-                
-            elif tool == 'c4d':
-                # Ищем .c4d файл в папке templates
-                template_files = glob.glob(os.path.join(self.templates_dir, "*.c4d"))
-                destination_dir = os.path.join(project_path, "02_PROCESS/C4D")
-                new_filename = f"{project_name}.c4d"
-            else:
+            # Определяем параметры для каждого инструмента
+            tool_config = {
+                'ae': {
+                    'pattern': '*.aep',
+                    'folder': '02_PROCESS/AE',
+                    'extension': '.aep'
+                },
+                'c4d': {
+                    'pattern': '*.c4d',
+                    'folder': '02_PROCESS/C4D',
+                    'extension': '.c4d'
+                },
+                'pr': {                                          
+                    'pattern': '*.prproj',
+                    'folder': '02_PROCESS/PR',
+                    'extension': '.prproj'
+                },
+                'houdini': {                                     
+                    'pattern': '*.hip',
+                    'folder': '02_PROCESS/HOUDINI',
+                    'extension': '.hip'
+                },
+                'blender': {                                     
+                    'pattern': '*.blend',
+                    'folder': '02_PROCESS/BLENDER',
+                    'extension': '.blend'
+                },
+            }
+            
+            if tool not in tool_config:
                 print(f"Неизвестный инструмент: {tool}")
                 return False
+            
+            config = tool_config[tool]
+            
+            # Ищем шаблон
+            template_files = glob.glob(os.path.join(self.templates_dir, config['pattern']))
+            destination_dir = os.path.join(project_path, config['folder'])
+            new_filename = f"{project_name}{config['extension']}"
             
             if not template_files:
                 print(f"Шаблон для {tool} не найден")

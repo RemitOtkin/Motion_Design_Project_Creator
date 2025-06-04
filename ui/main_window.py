@@ -30,14 +30,6 @@ class ProjectCreatorApp(QMainWindow):
         # Инициализация настроек
         self.settings_manager = SettingsManager()
         
-        # Инициализация менеджера структуры папок
-        try:
-            self.folder_structure_manager = FolderStructureManager()
-            print("✅ FolderStructureManager инициализирован")
-        except Exception as e:
-            print(f"⚠️ Ошибка инициализации FolderStructureManager: {e}")
-            self.folder_structure_manager = None
-        
         # Настройка языка
         self.current_lang = self.settings_manager.get('language', 'ru')
         self.t = Translations.get(self.current_lang)
@@ -235,7 +227,7 @@ class ProjectCreatorApp(QMainWindow):
             icon_path = os.path.join("resources", "icons", icon_filename)
             if os.path.exists(icon_path):
                 pixmap = QPixmap(icon_path)
-                scaled_pixmap = pixmap.scaled(24, 24, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                scaled_pixmap = pixmap.scaled(30, 30, Qt.KeepAspectRatio, Qt.SmoothTransformation)
                 icon_label.setPixmap(scaled_pixmap)
             else:
                 icon_label.setText(fallback_emoji)
@@ -246,9 +238,9 @@ class ProjectCreatorApp(QMainWindow):
             checkbox.setObjectName("tool_checkbox")
             checkbox.stateChanged.connect(self._update_preview)
             
-            container.addWidget(icon_label)
             container.addWidget(checkbox)
-            container.addStretch()
+            container.addWidget(icon_label)
+           # container.addStretch()
             
             return container, checkbox
         
@@ -404,29 +396,6 @@ class ProjectCreatorApp(QMainWindow):
     
     def _update_preview(self) -> None:
         """Обновляет предварительный просмотр структуры проекта"""
-        if self.folder_structure_manager:
-            # Используем новый менеджер структуры
-            try:
-                selected_tools = []
-                if self.ae_checkbox.isChecked():
-                    selected_tools.append('ae')
-                if self.c4d_checkbox.isChecked():
-                    selected_tools.append('c4d')
-                if hasattr(self, 'pr_checkbox') and self.pr_checkbox.isChecked():
-                    selected_tools.append('pr')
-                if hasattr(self, 'houdini_checkbox') and self.houdini_checkbox.isChecked():
-                    selected_tools.append('houdini')
-                if hasattr(self, 'blender_checkbox') and self.blender_checkbox.isChecked():
-                    selected_tools.append('blender')
-                
-                structure_preview = self.folder_structure_manager.get_structure_preview(selected_tools)
-                self.structure_text.setPlainText(structure_preview)
-                return
-            except Exception as e:
-                print(f"⚠️ Ошибка в менеджере структуры: {e}")
-                # Переходим к fallback
-        
-        # Fallback на старую логику
         structure = f"""📁 [{self.t['project_name_label'].replace(':', '')}]/
 ├── 📁 01_IN/
 │   ├── 📁 FOOTAGES/     {self.t['structure_comments']['footages']}
@@ -526,11 +495,10 @@ class ProjectCreatorApp(QMainWindow):
         
         # Добавляем детальную информацию
         details = f"""📁 {self.t['path']}: {result['path']}
-📂 {self.t['folders_created']}: {result['folders_created']}
-📄 {self.t['files_created']}: {result['files_created']}
-🛠️ {self.t['tools']}: {', '.join(result['tools'])}
-
-🎉 {self.t['project_ready']}"""
+                      📂 {self.t['folders_created']}: {result['folders_created']}
+                      📄 {self.t['files_created']}: {result['files_created']}
+                      🛠️ {self.t['tools']}: {', '.join(result['tools'])}
+                      🎉 {self.t['project_ready']}"""
         
         msg.setDetailedText(details)
         msg.addButton(self.t['open_folder'], QMessageBox.ActionRole)
@@ -572,41 +540,6 @@ class ProjectCreatorApp(QMainWindow):
             self.blender_checkbox.setChecked(False)
         self._update_preview()
         self._validate_form()
-    
-    def _show_structure_dialog(self) -> None:
-        """Показывает диалог настройки структуры папок"""
-        try:
-            dialog = FolderStructureDialog(self, self.current_lang)
-            dialog.structure_changed.connect(self._on_structure_changed)
-            dialog.exec_()
-        except Exception as e:
-            QMessageBox.critical(
-                self, "Ошибка", 
-                f"Не удалось открыть диалог структуры:\n{e}"
-            )
-    
-    def _on_structure_changed(self, new_structure) -> None:
-        """
-        Обработчик изменения структуры папок
-        
-        Args:
-            new_structure: Новая структура папок
-        """
-        if self.folder_structure_manager:
-            try:
-                # Обновляем менеджер структуры
-                self.folder_structure_manager.update_structure(new_structure)
-                
-                # Обновляем предварительный просмотр
-                self._update_preview()
-                
-                # Показываем уведомление
-                self.status_bar.showMessage("Структура папок обновлена")
-            except Exception as e:
-                QMessageBox.warning(
-                    self, "Предупреждение",
-                    f"Не удалось обновить структуру: {e}"
-                )
     
     def _show_settings(self) -> None:
         """Показывает диалог настроек"""
