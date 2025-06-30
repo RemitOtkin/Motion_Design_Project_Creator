@@ -16,7 +16,7 @@ def main():
     """Главная функция приложения"""
     app = QApplication(sys.argv)
     app.setApplicationName("Project Creator")
-    app.setApplicationVersion("0.2")
+    app.setApplicationVersion("0.3")
     
     # Устанавливаем иконку приложения
     app.setWindowIcon(QIcon())

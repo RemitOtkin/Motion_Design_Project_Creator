@@ -18,7 +18,8 @@ from ui.components.settings_dialog import SettingsDialog
 from ui.styles.stylesheet import StyleSheet
 from core.project_creator import ProjectCreatorWorker
 from utils.platform_utils import open_folder
-
+from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import QScrollArea
 
 class ProjectCreatorApp(QMainWindow):
     """Главное окно приложения Project Creator"""
@@ -33,10 +34,29 @@ class ProjectCreatorApp(QMainWindow):
         # Настройка языка
         self.current_lang = self.settings_manager.get('language', 'ru')
         self.t = Translations.get(self.current_lang)
+
+        try:
+            from core.folder_structure_manager import FolderStructureManager
+            self.folder_structure_manager = FolderStructureManager()
+            print("✅ FolderStructureManager инициализирован")
+        except Exception as e:
+            print(f"⚠️ Ошибка инициализации FolderStructureManager: {e}")
+            self.folder_structure_manager = None
+
+        # Получаем адаптивные стили
+        try:
+            self.adaptive_styles = StyleSheet.get_adaptive_styles()
+            self.is_adaptive = True
+            print("✅ Адаптивные стили инициализированы")
+            self._print_screen_info()
+        except Exception as e:
+            print(f"⚠️ Ошибка инициализации адаптивных стилей: {e}")
+            self.adaptive_styles = None
+            self.is_adaptive = False
         
         # Настройка окна
         self.setWindowTitle("🎬 Project Creator v0.2")
-        self.resize(1280, 960)
+        self._setup_window_size()
         self.setWindowIcon(self._create_icon())
         
         # Инициализация UI
@@ -47,26 +67,64 @@ class ProjectCreatorApp(QMainWindow):
         self._center_window()
         
         # Восстанавливаем геометрию окна если сохранена
+        self._restore_window_geometry()
+    
+    def _print_screen_info(self):
+        """Выводит информацию об экране и масштабировании"""
+        if self.adaptive_styles:
+            info = self.adaptive_styles.screen_info.get_info()
+            print(f"📱 Адаптивный интерфейс:")
+            print(f"   Разрешение: {info['resolution']}")
+            print(f"   Категория: {info['category']}")
+            print(f"   DPI: {info['dpi']}")
+            print(f"   Масштаб: {info['scale_factor']}")
+            print(f"   Размер окна: {self.adaptive_styles.get_window_size()}")
+    
+    def _setup_window_size(self):
+        """Настраивает размер окна в зависимости от экрана"""
+        if self.is_adaptive:
+            try:
+                window_width, window_height = self.adaptive_styles.get_window_size()
+                self.resize(window_width, window_height)
+                print(f"📐 Размер окна установлен: {window_width}x{window_height}")
+            except Exception as e:
+                print(f"⚠️ Ошибка установки размера окна: {e}")
+                self.resize(1280, 960)
+        else:
+            self.resize(1280, 960)
+    
+    def _restore_window_geometry(self):
+        """Восстанавливает геометрию окна из настроек"""
         saved_geometry = self.settings_manager.get('window_geometry')
         if saved_geometry is not None:
             try:
                 self.restoreGeometry(saved_geometry)
+                print("✅ Геометрия окна восстановлена")
             except Exception as e:
-                print(f"Предупреждение: Не удалось восстановить геометрию окна: {e}")
-    
+                print(f"⚠️ Не удалось восстановить геометрию окна: {e}")
+
     def _create_icon(self) -> QIcon:
         """
-        Создает иконку для приложения
+        Создает иконку для приложения с адаптивным размером
         
         Returns:
             QIcon с иконкой приложения
         """
-        pixmap = QPixmap(32, 32)
+        # Адаптивный размер иконки
+        if self.is_adaptive:
+            icon_size = max(32, int(32 * self.adaptive_styles.scale))
+        else:
+            icon_size = 32
+        
+        pixmap = QPixmap(icon_size, icon_size)
         pixmap.fill(QColor(79, 172, 254))
         
         painter = QPainter(pixmap)
-        painter.setPen(QPen(Qt.white, 2))
-        painter.setFont(QFont("Montserrat", 16, QFont.Bold))
+        painter.setPen(QPen(Qt.white, max(2, int(2 * (icon_size / 32)))))
+        
+        # Адаптивный размер шрифта для иконки
+        font_size = max(12, int(16 * (icon_size / 32)))
+        painter.setFont(QFont("Montserrat", font_size, QFont.Bold))
         painter.drawText(pixmap.rect(), Qt.AlignCenter, "PC")
         painter.end()
         
@@ -82,12 +140,22 @@ class ProjectCreatorApp(QMainWindow):
     
     def _init_ui(self) -> None:
         """Инициализация пользовательского интерфейса"""
+        # Создаем центральный виджет
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         
+        # Основной layout с адаптивными отступами
         layout = QVBoxLayout(central_widget)
-        layout.setSpacing(20)
-        layout.setContentsMargins(30, 30, 30, 30)
+        
+        if self.is_adaptive:
+            spacing = self.adaptive_styles.sizes['margin_large']
+            margins = self.adaptive_styles.sizes['padding_large']
+        else:
+            spacing = 20
+            margins = 30
+        
+        layout.setSpacing(spacing)
+        layout.setContentsMargins(margins, margins, margins, margins)
         
         # Создаем компоненты интерфейса
         self._create_header(layout)
@@ -132,7 +200,20 @@ class ProjectCreatorApp(QMainWindow):
         Args:
             layout: Макет для размещения формы
         """
-        form_widget = QWidget()
+        # Для больших экранов используем скроллинг
+        if self.is_adaptive and self.adaptive_styles.screen_info.resolution_category in ['4K', '8K']:
+            scroll_area = QScrollArea()
+            scroll_area.setWidgetResizable(True)
+            scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+            
+            form_widget = QWidget()
+            scroll_area.setWidget(form_widget)
+            layout.addWidget(scroll_area)
+        else:
+            form_widget = QWidget()
+            layout.addWidget(form_widget)
+        
         form_layout = QVBoxLayout(form_widget)
         
         # Группа настроек проекта
@@ -143,8 +224,6 @@ class ProjectCreatorApp(QMainWindow):
         
         # Группа предварительного просмотра
         self._create_preview_group(form_layout)
-        
-        layout.addWidget(form_widget)
     
     def _create_project_settings_group(self, layout: QVBoxLayout) -> None:
         """
@@ -155,7 +234,14 @@ class ProjectCreatorApp(QMainWindow):
         """
         self.name_group = QGroupBox(self.t['project_settings'])
         name_layout = QVBoxLayout(self.name_group)
-        name_layout.setContentsMargins(15, 25, 15, 15)
+        if self.is_adaptive:
+            margins = self.adaptive_styles.sizes['padding_medium']
+            top_margin = self.adaptive_styles.sizes['padding_medium'] + 10
+        else:
+            margins = 15
+            top_margin = 25
+        
+        name_layout.setContentsMargins(margins, top_margin, margins, margins)
         
         # Поле ввода названия проекта
         self.name_label = QLabel(self.t['project_name_label'])
@@ -182,7 +268,12 @@ class ProjectCreatorApp(QMainWindow):
         """
         path_widget = QWidget()
         path_layout = QVBoxLayout(path_widget)
-        path_layout.setContentsMargins(0, 10, 0, 0)
+        if self.is_adaptive:
+            top_margin = self.adaptive_styles.sizes['margin_small']
+        else:
+            top_margin = 10
+        
+        path_layout.setContentsMargins(0, top_margin, 0, 0)
         
         # Метка поля пути
         self.path_label = QLabel(self.t['project_folder_label'])
@@ -216,7 +307,16 @@ class ProjectCreatorApp(QMainWindow):
         """
         self.tools_group = QGroupBox(self.t['dev_tools'])
         tools_layout = QVBoxLayout(self.tools_group)
-        tools_layout.setContentsMargins(15, 25, 15, 15)
+        
+        if self.is_adaptive:
+            margins = self.adaptive_styles.sizes['padding_medium']
+            top_margin = self.adaptive_styles.sizes['padding_medium'] + 10
+        else:
+            margins = 15
+            top_margin = 25
+        
+        tools_layout.setContentsMargins(margins, top_margin, margins, margins)
+        
         
         # Функция для создания контейнера с иконкой и чекбоксом
         def create_tool_container(display_name, icon_filename, fallback_emoji):
@@ -225,13 +325,24 @@ class ProjectCreatorApp(QMainWindow):
             # Иконка
             icon_label = QLabel()
             icon_path = os.path.join("resources", "icons", icon_filename)
+            
+            # Адаптивный размер иконки
+            if self.is_adaptive:
+                icon_size = self.adaptive_styles.sizes['icon_size']
+            else:
+                icon_size = 24
+            
             if os.path.exists(icon_path):
                 pixmap = QPixmap(icon_path)
-                scaled_pixmap = pixmap.scaled(30, 30, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                scaled_pixmap = pixmap.scaled(icon_size, icon_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
                 icon_label.setPixmap(scaled_pixmap)
             else:
                 icon_label.setText(fallback_emoji)
-                icon_label.setStyleSheet("font-size: 18px;")
+                if self.is_adaptive:
+                    font_size = int(icon_size * 0.75)
+                else:
+                    font_size = 18
+                icon_label.setStyleSheet(f"font-size: {font_size}px;")
             
             # Чекбокс
             checkbox = QCheckBox(display_name)
@@ -240,7 +351,6 @@ class ProjectCreatorApp(QMainWindow):
             
             container.addWidget(checkbox)
             container.addWidget(icon_label)
-           # container.addStretch()
             
             return container, checkbox
         
@@ -299,11 +409,26 @@ class ProjectCreatorApp(QMainWindow):
         """
         self.preview_group = QGroupBox(self.t['project_structure'])
         preview_layout = QVBoxLayout(self.preview_group)
-        preview_layout.setContentsMargins(15, 25, 15, 15)
+        
+        if self.is_adaptive:
+            margins = self.adaptive_styles.sizes['padding_medium']
+            top_margin = self.adaptive_styles.sizes['padding_medium'] + 10
+            if self.adaptive_styles.screen_info.resolution_category in ['4K', '8K']:
+                max_height = 400
+            elif self.adaptive_styles.screen_info.resolution_category == 'QHD':
+                max_height = 300
+            else:
+                max_height = 250
+        else:
+            margins = 15
+            top_margin = 25
+            max_height = 250
+        
+        preview_layout.setContentsMargins(margins, top_margin, margins, margins)
         
         self.structure_text = QTextEdit()
         self.structure_text.setReadOnly(True)
-        self.structure_text.setMaximumHeight(250)
+        self.structure_text.setMaximumHeight(max_height)
         
         preview_layout.addWidget(self.structure_text)
         layout.addWidget(self.preview_group)
@@ -357,6 +482,13 @@ class ProjectCreatorApp(QMainWindow):
         button_layout.addWidget(self.reset_btn)
         button_layout.addWidget(self.settings_btn)
         button_layout.addWidget(self.open_folder_btn)
+
+        if self.is_adaptive:
+            animation_duration = max(150, int(200 * self.adaptive_styles.scale))
+            hover_offset = max(2, int(2 * self.adaptive_styles.scale))
+            for btn in [self.create_btn, self.reset_btn, self.settings_btn, self.open_folder_btn]:
+                btn.set_animation_duration(animation_duration)
+                btn.set_hover_effect(hover_offset)
         
         layout.addLayout(button_layout)
     
@@ -495,10 +627,10 @@ class ProjectCreatorApp(QMainWindow):
         
         # Добавляем детальную информацию
         details = f"""📁 {self.t['path']}: {result['path']}
-                      📂 {self.t['folders_created']}: {result['folders_created']}
-                      📄 {self.t['files_created']}: {result['files_created']}
-                      🛠️ {self.t['tools']}: {', '.join(result['tools'])}
-                      🎉 {self.t['project_ready']}"""
+                    📂 {self.t['folders_created']}: {result['folders_created']}
+                    📄 {self.t['files_created']}: {result['files_created']}
+                    🛠️ {self.t['tools']}: {', '.join(result['tools'])}
+                    🎉 {self.t['project_ready']}"""
         
         msg.setDetailedText(details)
         msg.addButton(self.t['open_folder'], QMessageBox.ActionRole)
@@ -587,6 +719,36 @@ class ProjectCreatorApp(QMainWindow):
         else:
             QMessageBox.warning(self, self.t['warning'], self.t['folder_not_exists'])
     
+    def resizeEvent(self, event):
+        """
+        Обработчик изменения размера окна для адаптивности
+        
+        Args:
+            event: Событие изменения размера
+        """
+        super().resizeEvent(event)
+        
+        # Адаптивное изменение интерфейса при ресайзе
+        if self.is_adaptive:
+            QTimer.singleShot(100, self._on_window_resized)
+    
+    def _on_window_resized(self):
+        """Обрабатывает изменение размера окна с задержкой"""
+        try:
+            # Пересчитываем максимальную ширину заголовков
+            window_width = self.width()
+            
+            # Адаптируем ширину заголовков
+            if hasattr(self, 'title'):
+                self.title.setMaximumWidth(int(window_width * 0.8))
+            if hasattr(self, 'subtitle'):
+                self.subtitle.setMaximumWidth(int(window_width * 0.7))
+            
+            print(f"📐 Окно изменено: {window_width}x{self.height()}")
+        except Exception as e:
+            print(f"⚠️ Ошибка при адаптации к новому размеру: {e}")
+
+    # Обновить метод closeEvent для лучшего сохранения настроек:
     def closeEvent(self, event) -> None:
         """
         Обработчик закрытия приложения
@@ -598,7 +760,8 @@ class ProjectCreatorApp(QMainWindow):
             # Сохраняем геометрию окна
             self.settings_manager.set('window_geometry', self.saveGeometry())
             self.settings_manager.save_settings()
+            print("✅ Настройки сохранены при закрытии")
         except Exception as e:
-            print(f"Предупреждение: Не удалось сохранить настройки при закрытии: {e}")
+            print(f"⚠️ Не удалось сохранить настройки при закрытии: {e}")
         
         event.accept()
