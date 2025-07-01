@@ -4,7 +4,7 @@
 """
 
 import os
-from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
+from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
                             QLabel, QGroupBox, QLineEdit, QCheckBox, QTextEdit,
                             QProgressBar, QStatusBar, QMessageBox, QFileDialog,
                             QApplication, QSizePolicy)
@@ -13,11 +13,12 @@ from PyQt5.QtGui import QPixmap, QPainter, QPen, QColor, QFont, QIcon
 
 from config.settings import SettingsManager
 from config.translations import Translations
-from ui.components.animated_button import AnimatedButton
 from ui.components.settings_dialog import SettingsDialog
 from ui.styles.stylesheet import StyleSheet
 from core.project_creator import ProjectCreatorWorker
 from utils.platform_utils import open_folder
+from utils.resource_manager import resource_path
+from utils.button_animations import setup_button_animations_delayed
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QScrollArea
 
@@ -55,9 +56,9 @@ class ProjectCreatorApp(QMainWindow):
             self.is_adaptive = False
         
         # Настройка окна
-        self.setWindowTitle("🎬 Project Creator v0.2")
+        self.setWindowTitle("Motion Design Project Creator v0.3")
         self._setup_window_size()
-        self.setWindowIcon(self._create_icon())
+        self.setWindowIcon(self._load_icon())
         
         # Инициализация UI
         self._init_ui()
@@ -103,6 +104,26 @@ class ProjectCreatorApp(QMainWindow):
             except Exception as e:
                 print(f"⚠️ Не удалось восстановить геометрию окна: {e}")
 
+    def _load_icon(self) -> QIcon:
+        
+        icon_paths = [
+                    "img/icon.ico", 
+                    "img/app_icon.ico",
+                    "resources/img/icon.ico"
+                     ]
+        for icon_path in icon_paths: 
+            try: 
+                if os.path.exists(icon_path):
+                    print(f"✅ Найдена иконка: {icon_path}")
+                    return QIcon(icon_path)
+                resource_icon_path = resource_path(icon_path)
+                if os.path.exists(resource_icon_path):
+                    print(f"✅ Найдена иконка (resource): {resource_icon_path}")
+                    return QIcon(resource_icon_path)
+            except Exception as e:
+                print(f"⚠️ Ошибка загрузки иконки {icon_path}: {e}")
+                continue
+    
     def _create_icon(self) -> QIcon:
         """
         Создает иконку для приложения с адаптивным размером
@@ -174,7 +195,7 @@ class ProjectCreatorApp(QMainWindow):
         header_widget = QWidget()
         header_layout = QVBoxLayout(header_widget)
         header_layout.setContentsMargins(0, 0, 0, 20)
-        header_layout.setAlignment(Qt.AlignCenter)
+        header_layout.setAlignment(Qt.AlignLeft)
         
         # Основной заголовок
         self.title = QLabel(self.t['window_title'])
@@ -288,7 +309,7 @@ class ProjectCreatorApp(QMainWindow):
         self.project_path.setPlaceholderText(self.t['project_folder_placeholder'])
         self.project_path.textChanged.connect(self._validate_form)
         
-        self.browse_btn = AnimatedButton(self.t['browse'])
+        self.browse_btn = QPushButton(self.t['browse'])
         self.browse_btn.setObjectName("browse_button")
         self.browse_btn.clicked.connect(self._browse_folder)
         
@@ -449,32 +470,27 @@ class ProjectCreatorApp(QMainWindow):
         layout.addWidget(self.progress_bar)
     
     def _create_buttons(self, layout: QVBoxLayout) -> None:
-        """
-        Создает кнопки управления
-        
-        Args:
-            layout: Макет для размещения кнопок
-        """
+       
         button_layout = QHBoxLayout()
         
         # Основная кнопка создания проекта
-        self.create_btn = AnimatedButton(self.t['create_project'])
+        self.create_btn = QPushButton(self.t['create_project'])
         self.create_btn.setObjectName("create_button")
         self.create_btn.clicked.connect(self._create_project)
         self.create_btn.setEnabled(False)
         
         # Кнопка сброса формы
-        self.reset_btn = AnimatedButton(self.t['reset'])
+        self.reset_btn = QPushButton(self.t['reset'])
         self.reset_btn.setObjectName("secondary_button")
         self.reset_btn.clicked.connect(self._reset_form)
         
         # Кнопка настроек
-        self.settings_btn = AnimatedButton(self.t['settings'])
+        self.settings_btn = QPushButton(self.t['settings'])
         self.settings_btn.setObjectName("secondary_button")
         self.settings_btn.clicked.connect(self._show_settings)
         
         # Кнопка открытия папки проектов
-        self.open_folder_btn = AnimatedButton(self.t['open_folder'])
+        self.open_folder_btn = QPushButton(self.t['open_folder'])
         self.open_folder_btn.setObjectName("secondary_button")
         self.open_folder_btn.clicked.connect(self._open_projects_folder)
         
@@ -482,16 +498,17 @@ class ProjectCreatorApp(QMainWindow):
         button_layout.addWidget(self.reset_btn)
         button_layout.addWidget(self.settings_btn)
         button_layout.addWidget(self.open_folder_btn)
-
-        if self.is_adaptive:
-            animation_duration = max(150, int(200 * self.adaptive_styles.scale))
-            hover_offset = max(2, int(2 * self.adaptive_styles.scale))
-            for btn in [self.create_btn, self.reset_btn, self.settings_btn, self.open_folder_btn]:
-                btn.set_animation_duration(animation_duration)
-                btn.set_hover_effect(hover_offset)
         
         layout.addLayout(button_layout)
-    
+        
+        buttons_list = [self.create_btn, self.reset_btn, self.settings_btn, self.open_folder_btn]
+        setup_button_animations_delayed(
+            buttons_list,
+            delay=100,  
+            hover_offset=2,
+            duration=50
+    )
+
     def _create_status_bar(self) -> None:
         """Создает строку состояния"""
         self.status_bar = QStatusBar()

@@ -52,7 +52,7 @@ class StyleSheet:
     @classmethod
     def get_dialog_stylesheet(cls) -> str:
         """
-        Возвращает адаптивные стили для диалоговых окон
+        Возвращает улучшенные адаптивные стили для диалоговых окон
         
         Returns:
             CSS строка со стилями для диалогов
@@ -62,10 +62,10 @@ class StyleSheet:
             if adaptive_styles:
                 return adaptive_styles.get_dialog_stylesheet()
             else:
-                return cls._get_fallback_dialog_stylesheet()
+                return cls._get_improved_dialog_stylesheet()
         except Exception as e:
             print(f"⚠️ Ошибка загрузки адаптивных стилей диалогов: {e}")
-            return cls._get_fallback_dialog_stylesheet()
+            return cls._get_improved_dialog_stylesheet()
     
     @classmethod
     def get_window_size(cls) -> tuple:
@@ -310,9 +310,170 @@ class StyleSheet:
         """
     
     @staticmethod
+    def _get_improved_dialog_stylesheet() -> str:
+        
+        return """
+            QDialog {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 #f8f9fa, stop:1 #e9ecef);
+                border-radius: 12px;
+                min-width: 480px;
+                min-height: 320px;
+            }
+            
+            QLabel {
+                font-family: "Arial", "Segoe UI", sans-serif;
+                font-weight: bold;
+                font-size: 14px;
+                color: #333;
+                margin-bottom: 8px;
+                padding: 4px 0px;
+            }
+            
+            QLineEdit {
+                padding: 12px 16px;
+                border: 2px solid #e0e0e0;
+                border-radius: 8px;
+                background: white;
+                font-family: "Arial", "Segoe UI", sans-serif;
+                font-size: 14px;
+                color: #333;
+                min-height: 20px;
+            }
+            
+            QLineEdit:focus {
+                border-color: #4facfe;
+                background: #f8f9fa;
+                outline: none;
+            }
+            
+            QComboBox {
+                padding: 12px 16px;
+                border: 2px solid #e0e0e0;
+                border-radius: 8px;
+                background: white;
+                font-family: "Arial", "Segoe UI", sans-serif;
+                font-size: 14px;
+                color: #333;
+                min-height: 20px;
+                min-width: 170px;
+                max-width: 200px;
+            }
+            
+            QComboBox:focus {
+                border-color: #4facfe;
+                outline: none;
+            }
+            
+            QComboBox::drop-down {
+                border: none;
+                width: 30px;
+                background: transparent;
+            }
+            
+            QComboBox::down-arrow {
+                image: none;
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 8px solid #666;
+                margin-right: 10px;
+            }
+            
+            QComboBox QAbstractItemView {
+                border: 2px solid #e0e0e0;
+                border-radius: 6px;
+                background: white;
+                selection-background-color: #4facfe;
+                selection-color: white;
+                padding: 4px;
+            }
+            
+            QPushButton {
+                padding: 12px 24px;
+                border: none;
+                border-radius: 8px;
+                font-family: "Arial", "Segoe UI", sans-serif;
+                font-size: 14px;
+                font-weight: bold;
+                min-width: 100px;
+                min-height: 16px;
+                margin: 4px;
+            }
+            
+            QPushButton:hover {
+                transform: scale(1.02);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }
+            
+            QPushButton:pressed {
+                transform: scale(0.98);
+            }
+            
+            QPushButton[objectName="save_btn"] {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #28a745, stop:1 #20c997);
+                color: white;
+                min-width: 120px;
+                max-width: 120px;
+            }
+            
+            QPushButton[objectName="save_btn"]:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #218838, stop:1 #1ba085);
+            }
+            
+            QPushButton[objectName="cancel_btn"] {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #6c757d, stop:1 #adb5bd);
+                color: white;
+                min-width: 120px;
+                max-width: 120px;
+            }
+            
+            QPushButton[objectName="cancel_btn"]:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #5a6268, stop:1 #9ca3af);
+            }
+            
+            QPushButton[objectName="browse_btn"] {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #007bff, stop:1 #0056b3);
+                color: white;
+                min-width: 100px;
+                max-width: 120px;
+            }
+            
+            QPushButton[objectName="browse_btn"]:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #0056b3, stop:1 #004085);
+            }
+            
+            /* Стили для группировки элементов */
+            QWidget[objectName="path_section"] {
+                background: rgba(255, 255, 255, 0.8);
+                border-radius: 8px;
+                padding: 16px;
+                margin: 8px 0px;
+            }
+            
+            QWidget[objectName="language_buttons_section"] {
+                background: rgba(255, 255, 255, 0.8);
+                border-radius: 8px;
+                padding: 16px;
+                margin: 8px 0px;
+            }
+            
+            QWidget[objectName="button_section"] {
+                background: transparent;
+                padding: 16px 0px;
+                margin-top: 16px;
+            }
+        """
+    
+    @staticmethod
     def _get_fallback_dialog_stylesheet() -> str:
         """
-        Возвращает fallback стили для диалогов
+        Возвращает fallback стили для диалогов (старая версия для совместимости)
         
         Returns:
             CSS строка со стилями

@@ -499,7 +499,7 @@ class AdaptiveStyles:
                 font-weight: bold;
                 min-width: {int(s['button_height'] * 1.8)}px;
                 min-height: {s['button_height']}px;
-                font-size: {s['font_size_button']}px;
+                font-size: {int(s['font_size_button'] * 0.9)}px;
             }}
             QPushButton[objectName="save_btn"] {{
                 background: #28a745;

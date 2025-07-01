@@ -15,7 +15,7 @@ from ui.main_window import ProjectCreatorApp
 def main():
     """Главная функция приложения"""
     app = QApplication(sys.argv)
-    app.setApplicationName("Project Creator")
+    app.setApplicationName("Motion Design Project Creator")
     app.setApplicationVersion("0.3")
     
     # Устанавливаем иконку приложения

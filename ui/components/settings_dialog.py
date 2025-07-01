@@ -5,7 +5,7 @@
 
 from typing import Dict, Any
 from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
-                            QLineEdit, QComboBox, QPushButton, QFileDialog)
+                            QLineEdit, QComboBox, QPushButton, QFileDialog, QWidget)
 from PyQt5.QtCore import Qt
 
 from config.translations import Translations
@@ -37,33 +37,27 @@ class SettingsDialog(QDialog):
     def _init_ui(self) -> None:
         """Инициализация пользовательского интерфейса"""
         self.setWindowTitle(self.t['settings_title'])
-        self.setFixedSize(500, 300)
+        
+        self.setFixedSize(750, 500)  
         self.setStyleSheet(StyleSheet.get_dialog_stylesheet())
         
         layout = QVBoxLayout(self)
-        layout.setSpacing(15)
-        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(20)  # Увеличили отступы
+        layout.setContentsMargins(30, 30, 30, 30)  # Увеличили отступы
         
-        # Настройка пути по умолчанию
         self._create_path_section(layout)
         
-        # Настройка языка
-        self._create_language_section(layout)
+        self._create_language_buttons_section(layout)
         
-        # Растягиваем пространство
-        layout.addStretch()
-        
-        # Кнопки управления
-        self._create_buttons(layout)
-    
+          
     def _create_path_section(self, layout: QVBoxLayout) -> None:
-        """
-        Создает секцию настройки пути по умолчанию
-        
-        Args:
-            layout: Макет для размещения секции
-        """
-        path_layout = QVBoxLayout()
+    
+        # Создаем контейнер для секции
+        path_widget = QWidget()
+        path_widget.setObjectName("path_section")
+        path_layout = QVBoxLayout(path_widget)
+        path_layout.setSpacing(12)
+        path_layout.setContentsMargins(0, 0, 0, 0)
         
         # Заголовок секции
         path_label = QLabel(self.t['default_folder'])
@@ -71,6 +65,7 @@ class SettingsDialog(QDialog):
         
         # Поле ввода пути и кнопка обзора
         path_input_layout = QHBoxLayout()
+        path_input_layout.setSpacing(12)
         
         self.path_edit = QLineEdit()
         self.path_edit.setPlaceholderText(self.t['project_folder_placeholder'])
@@ -78,58 +73,68 @@ class SettingsDialog(QDialog):
         self.browse_btn = QPushButton(self.t['browse'])
         self.browse_btn.setObjectName("browse_btn")
         self.browse_btn.clicked.connect(self._browse_folder)
+        # Ограничиваем ширину кнопки обзора
+        self.browse_btn.setMaximumWidth(120)
         
-        path_input_layout.addWidget(self.path_edit)
-        path_input_layout.addWidget(self.browse_btn)
+        path_input_layout.addWidget(self.path_edit, 1)  # Растягиваем поле ввода
+        path_input_layout.addWidget(self.browse_btn, 0)  # Фиксированная ширина кнопки
+        
         path_layout.addLayout(path_input_layout)
-        
-        layout.addLayout(path_layout)
+        layout.addWidget(path_widget)
     
-    def _create_language_section(self, layout: QVBoxLayout) -> None:
-        """
-        Создает секцию выбора языка
+    def _create_language_buttons_section(self, layout: QVBoxLayout) -> None:
+    
+        lang_buttons_widget = QWidget()
+        lang_buttons_widget.setObjectName("language_buttons_section")
+        main_layout = QVBoxLayout(lang_buttons_widget)
+        main_layout.setSpacing(16)
+        main_layout.setContentsMargins(0, 0, 0, 0)
         
-        Args:
-            layout: Макет для размещения секции
-        """
-        lang_layout = QVBoxLayout()
+        # Горизонтальный layout для языка и кнопок
+        horizontal_layout = QHBoxLayout()
+        horizontal_layout.setSpacing(20)
         
-        # Заголовок секции
+        # Левая часть - выбор языка
+        language_layout = QVBoxLayout()
+        language_layout.setSpacing(8)
+        
         lang_label = QLabel(self.t['language'])
-        lang_layout.addWidget(lang_label)
+        language_layout.addWidget(lang_label)
         
-        # Выпадающий список языков
         self.lang_combo = QComboBox()
         self.lang_combo.addItem("Русский", "ru")
         self.lang_combo.addItem("English", "en")
+        language_layout.addWidget(self.lang_combo)
         
-        lang_layout.addWidget(self.lang_combo)
-        layout.addLayout(lang_layout)
-    
-    def _create_buttons(self, layout: QVBoxLayout) -> None:
-        """
-        Создает кнопки управления диалогом
+        # Правая часть - кнопки
+        buttons_layout = QVBoxLayout()
+        buttons_layout.setSpacing(8)
         
-        Args:
-            layout: Макет для размещения кнопок
-        """
-        button_layout = QHBoxLayout()
+        # Добавляем небольшой отступ сверху для выравнивания с комбобоксом
+        buttons_layout.addSpacing(26)  # Примерно высота label
         
-        # Кнопка сохранения
+        buttons_horizontal = QHBoxLayout()
+        buttons_horizontal.setSpacing(12)
+        
         self.save_btn = QPushButton(self.t['save'])
         self.save_btn.setObjectName("save_btn")
         self.save_btn.clicked.connect(self.accept)
         
-        # Кнопка отмены
         self.cancel_btn = QPushButton(self.t['cancel'])
         self.cancel_btn.setObjectName("cancel_btn")
         self.cancel_btn.clicked.connect(self.reject)
         
-        button_layout.addStretch()
-        button_layout.addWidget(self.save_btn)
-        button_layout.addWidget(self.cancel_btn)
+        buttons_horizontal.addWidget(self.save_btn)
+        buttons_horizontal.addWidget(self.cancel_btn)
+        buttons_layout.addLayout(buttons_horizontal)
         
-        layout.addLayout(button_layout)
+        # Добавляем части в горизонтальный layout
+        horizontal_layout.addLayout(language_layout)
+        horizontal_layout.addStretch()  # Растягиваем пространство между языком и кнопками
+        horizontal_layout.addLayout(buttons_layout)
+        
+        main_layout.addLayout(horizontal_layout)
+        layout.addWidget(lang_buttons_widget)
     
     def _browse_folder(self) -> None:
         """Открывает диалог выбора папки"""
