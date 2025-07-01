@@ -160,7 +160,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Remit Otkin**
 - GitHub: [@RemitOtkin](https://github.com/RemitOtkin)
-- Email: [your-email@example.com]
+- Email: damir@hamza.ru
 
 ## 🙏 Acknowledgments
 
