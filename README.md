@@ -125,14 +125,12 @@ We welcome contributions! Here's how you can help:
 ### Version 1.0
 - [x] Basic project structure creation
 - [x] Multi-tool support
-- [x] Customizable folder structure
+- [x] Custom template files support
 - [x] Bilingual interface
 
 ### Version 1.1 (Planned)
 - [ ] Project templates library
 - [ ] Asset preview integration
-- [ ] Cloud sync capabilities
-- [ ] Team collaboration features
 
 ## 🐛 Known Issues
 
