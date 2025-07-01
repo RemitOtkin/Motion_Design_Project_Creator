@@ -9,7 +9,7 @@ class Translations:
     
     RU = {
         'window_title': 'Remit Otkin Project Creator',
-        'subtitle': 'Персональный инструмент для создания структуры медиа-проектов',
+        'subtitle': 'Персональный инструмент <br> для создания структуры медиа-проектов',
         'project_settings': '📁 Настройки проекта',
         'project_name_label': 'Название проекта:',
         'project_name_placeholder': 'Введите название проекта...',
@@ -66,7 +66,7 @@ class Translations:
     
     EN = {
         'window_title': 'Remit Otkin Project Creator',
-        'subtitle': 'Personal tool for creating media project structures',
+        'subtitle': 'Personal tool <br> for creating media project structures',
         'project_settings': '📁 Project Settings',
         'project_name_label': 'Project name:',
         'project_name_placeholder': 'Enter project name...',

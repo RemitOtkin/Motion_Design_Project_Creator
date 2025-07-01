@@ -414,9 +414,9 @@ class ProjectCreatorApp(QMainWindow):
             margins = self.adaptive_styles.sizes['padding_medium']
             top_margin = self.adaptive_styles.sizes['padding_medium'] + 10
             if self.adaptive_styles.screen_info.resolution_category in ['4K', '8K']:
-                max_height = 400
+                max_height = 475
             elif self.adaptive_styles.screen_info.resolution_category == 'QHD':
-                max_height = 300
+                max_height = 325
             else:
                 max_height = 250
         else:

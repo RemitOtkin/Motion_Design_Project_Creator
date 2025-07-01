@@ -138,8 +138,8 @@ class AdaptiveStyles:
             'font_size_subtitle': 14,
             'font_size_form_label': 13,
             'font_size_text': 14,
-            'font_size_button': 14,
-            'font_size_monospace': 12,
+            'font_size_button': 18,
+            'font_size_monospace': 14,
             'padding_large': 30,
             'padding_medium': 20,
             'padding_small': 15,
@@ -195,9 +195,9 @@ class AdaptiveStyles:
         # Для высоких DPI используем более четкие шрифты
         if self.screen_info.dpi > 120:
             return {
-                'primary': '"Segoe UI", "Roboto", "Arial", sans-serif',
+                'primary': '"Roboto","Segoe UI", "Arial", sans-serif',
                 'monospace': '"Fira Code", "Consolas", "Courier New", monospace',
-                'title': '"Segoe UI Semibold", "Arial Black", sans-serif'
+                'title': '"Roboto", "Segoe UI Semibold", "Arial Black", sans-serif'
             }
         else:
             return {
@@ -247,7 +247,7 @@ class AdaptiveStyles:
             font-weight: bold;
             color: white;
             margin: {s['margin_small']}px;
-            padding: {s['padding_tiny']}px {s['padding_medium']}px;
+            padding: {s['padding_small']}px {s['padding_medium']}px;
             background: rgba(255, 255, 255, 0.25);
             border: 1px solid #e0e0e0;
             border-radius: {s['border_radius']}px;
@@ -263,7 +263,7 @@ class AdaptiveStyles:
             background: rgba(255, 255, 255, 0.25);
             border: 1px solid #e0e0e0;
             border-radius: {s['border_radius']}px;
-            max-width: {int(s['window_width'] * 0.6)}px;
+            max-width: {int(s['window_width'] * 0.5)}px;
         }}
         
         QGroupBox {{
@@ -282,8 +282,8 @@ class AdaptiveStyles:
             subcontrol-origin: margin;
             subcontrol-position: top left;
             left: {s['margin_medium']}px;
-            top: -{s['padding_small'] + 2}px;
-            padding: {s['padding_small']}px {s['padding_medium']}px;
+            top: {s['padding_small'] }px;
+            padding: {s['padding_tiny']}px {s['padding_small']}px;
             background: rgba(255, 255, 255, 0.95);
             border: {s['border_width']}px solid #e0e0e0;
             border-radius: {s['border_radius']}px;
