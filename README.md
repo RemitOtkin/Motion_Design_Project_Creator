@@ -1,5 +1,4 @@
 # 🎬 Motion Design Project Creator
-![Screenshot 2025-07-01 134454](https://github.com/user-attachments/assets/d4e8038c-e2f1-4db5-b390-fa5b87ddb76e)
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
 [![PyQt5](https://img.shields.io/badge/PyQt5-5.15+-green.svg)](https://pypi.org/project/PyQt5/)
