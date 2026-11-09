@@ -1,176 +1,118 @@
-# 🎬 Motion Design Project Creator
+# Project Creator 1.1
 
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
-[![PyQt5](https://img.shields.io/badge/PyQt5-5.15+-green.svg)](https://pypi.org/project/PyQt5/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+A small desktop app that creates a clean, consistent folder structure for motion design and video projects, with ready-to-open project files for After Effects, Cinema 4D, Premiere Pro, Houdini and Blender.
 
-> **Professional project structure generator for motion designers and video creators**
+![Project Creator — new project with a live folder preview](docs/screenshot.png)
 
-A smart desktop application that automatically creates organized folder structures for motion design projects with support for multiple industry-standard tools.
+- Live preview of exactly what will be created
+- One click (or Ctrl+Enter) creates the folders, a `README.md`, and versioned template files such as `MyProject_v001.aep`
+- Edit the folder structure right in the preview — rename, add, delete, undo — and it's remembered
+- English and Russian interface
 
-## ✨ Features
+## Run it
 
-### 🎯 **Smart Project Organization**
-- **Standardized Structure**: Creates industry-standard folder hierarchy
-- **Multi-Tool Support**: After Effects, Cinema 4D, Premiere Pro, Houdini, Blender
-- **Template Integration**: Includes pre-configured project templates
-- **Adaptive Interface**: Responsive UI that scales to different screen sizes
+Double-click **`launcher.bat`**. On first run it installs PySide6 (Qt 6), then opens the app.
 
-### 🛠️ **Professional Workflow**
-- **Customizable Structure**: Modify folder structure to match your workflow
-- **Quick Setup**: Create complete project in seconds
-- **Path Management**: Remember favorite project locations
-- **Bilingual Support**: Russian and English interface
+Or from a terminal:
 
-### 📁 **Generated Structure**
-```
-📁 [Project Name]/
-├── 📁 01_IN/               # Source materials
-│   ├── 📁 FOOTAGES/        # Video files
-│   ├── 📁 SFX/             # Audio & music
-│   ├── 📁 FONTS/           # Typography
-│   └── 📁 ASSETS/          # Graphics & textures
-├── 📁 02_PROCESS/          # Working files
-│   ├── 📁 AE/              # After Effects projects
-│   ├── 📁 C4D/             # Cinema 4D scenes
-│   ├── 📁 PR/              # Premiere Pro projects
-│   ├── 📁 HOUDINI/         # Houdini files
-│   └── 📁 BLENDER/         # Blender projects
-├── 📁 03_RENDER/           # Render output
-└── 📁 04_OUT/              # Final deliverables
-    ├── 📁 01_PREVIEW/      # Client previews
-    ├── 📁 02_STILLSHOTS/   # Still frames
-    ├── 📁 03_ANIMATIC/     # Storyboards
-    └── 📁 04_MASTER/       # Final files
+```bash
+pip install -r requirements.txt
+python main.py
 ```
 
-## 🚀 Quick Start
+Requires Python 3.10+.
 
-### Prerequisites
-- Python 3.8 or higher
-- PyQt5
+To build a standalone `.exe`, run **`build_exe.bat`** — the result is `dist\ProjectCreator\ProjectCreator.exe`.
 
-### Installation
+## Using it
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/RemitOtkin/Motion_Design_Project_Creator.git
-   cd Motion_Design_Project_Creator
-   ```
+1. Type a project name. Characters Windows doesn't allow (`< > : " / \ | ? *`) are removed, and the final folder name is shown above the Create button.
+2. Pick a location — Browse, type a path, or drop a folder onto the window.
+3. Toggle the tools you'll use. Each adds `02_PROCESS/<TOOL>/` with a copy of its template named `<Project>_v001.<ext>`.
+4. Press **Create project** or **Ctrl+Enter**.
 
-2. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+The preview on the right is built from the same definition the app writes to disk, so what you see is exactly what you get. A `README.md` describing the structure is added to every project.
 
-3. **Run the application**
-   ```bash
-   launch.bat
-   ```
+## Editing the structure
 
-## 🔧 Configuration
+Edit the folders right in the preview:
 
-### Customizing Folder Structure
-The application allows you to:
-- Modify default folder names and hierarchy
-- Create and save custom templates
-- Add comments to folders for team clarity
-- Include/exclude specific tool folders
+![Renaming a folder in the preview](docs/editing.png)
 
-### Settings
-- **Default Project Path**: Set your preferred projects directory
-- **Language**: Switch between Russian and English
-- **Window Preferences**: Automatic geometry saving
+| Action | How |
+|---|---|
+| Rename a folder | Double-click it, or select it and press **F2** |
+| Add a folder | Right-click a folder → **New subfolder** (inside) or **New folder** (next to it). Right-click empty space to add at the top level |
+| Delete a folder | Right-click → **Delete**, or select it and press **Del** |
+| Undo | **Ctrl+Z** (with the preview focused) or right-click → **Undo** |
+| Back to default | Right-click → **Reset to default structure** |
 
-## 🏗️ Architecture
+New top-level folders continue the numbering (`05_NEW_FOLDER`). Names are cleaned of characters Windows doesn't allow, and duplicate names in the same folder are refused.
 
-### Core Components
-- **`core/project_creator.py`** - Main project creation logic
-- **`core/folder_structure_manager.py`** - Structure management and templates
-- **`ui/main_window.py`** - Primary application interface
-- **`ui/components/`** - Reusable UI components
-- **`config/`** - Settings and translations
+Your structure is saved and used for every new project until you reset it — a **Custom structure** badge shows when it differs from the default. Tool folders (green) come from the tool tiles, so toggle a tile to add or remove them; `02_PROCESS` can be renamed but not deleted, because tool folders go there.
 
-### Key Features
-- **Threaded Operations**: Non-blocking project creation
-- **Adaptive UI**: Screen-aware interface scaling
-- **Cross-Platform**: Windows, macOS, and Linux support
-- **Extensible**: Easy to add new tools and templates
+## Structure
 
-## 🎨 For Motion Designers
+```
+<Project>/
+├── 01_IN/            source material
+│   ├── FOOTAGES/
+│   ├── SFX/
+│   ├── FONTS/
+│   └── ASSETS/
+├── 02_PROCESS/       working files
+│   ├── AE/           <Project>_v001.aep      (if After Effects is selected)
+│   ├── C4D/          <Project>_v001.c4d      (if Cinema 4D is selected)
+│   ├── PR/  HOUDINI/  BLENDER/               (same pattern)
+├── 03_RENDER/        intermediate renders
+├── 04_OUT/           deliverables
+│   ├── 01_PREVIEW/
+│   ├── 02_STILLSHOTS/
+│   ├── 03_ANIMATIC/
+│   └── 04_MASTER/
+└── README.md
+```
 
-### Supported Workflows
-- **Commercial Projects**: Client work organization
-- **Personal Projects**: Creative experiments
-- **Team Collaboration**: Standardized structure for teams
-- **Asset Management**: Organized resource storage
+This is the default; change it in the preview (see above). The default itself and the tool list live in `app/structure.py`.
 
-### Industry Integration
-- Pre-configured templates for major motion design tools
-- Follows industry naming conventions
-- Compatible with asset management workflows
-- Supports render farm organization
+## Templates
 
-## 🤝 Contributing
+Templates live in `resources/templates/`. The first file with the matching extension is used (`template.aep`, `template.c4d`, …), so you can replace any of them with your own start scene.
 
-We welcome contributions! Here's how you can help:
+## Settings
 
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/AmazingFeature`)
-3. **Commit** your changes (`git commit -m 'Add some AmazingFeature'`)
-4. **Push** to the branch (`git push origin feature/AmazingFeature`)
-5. **Open** a Pull Request
+Stored per user in `%APPDATA%\ProjectCreator\settings.json`: default projects folder, language (EN/RU), your custom folder structure, the last tools you used, and window position.
 
+## Code layout
 
-### Version 1.0
-- [x] Basic project structure creation
-- [x] Multi-tool support
-- [x] Custom template files support
-- [x] Bilingual interface
+```
+main.py                    entry point
+app/structure.py           folder layout + tools (single source of truth)
+app/creator.py             writes a project to disk, renders README (no Qt)
+app/settings.py            JSON settings in AppData
+app/i18n.py                English and Russian strings
+app/paths.py               resources, app data, open in Explorer
+app/ui/theme.py            colors, fonts, stylesheet, dark title bar
+app/ui/widgets.py          tool tiles, preview tree, banner, segmented control
+app/ui/main_window.py      the main screen
+app/ui/settings_dialog.py  settings
+```
 
-### Version 1.1 (Planned)
-- [ ] Project templates library
-- [ ] Asset preview integration
+## Changes in 1.1
 
-## 🐛 Known Issues
+- Edit the folder structure in the preview: rename (double-click / F2), add (right-click), delete (Del), undo (Ctrl+Z), reset. Saved between sessions.
 
-- Animation button hover effects may cause UI lag on some systems
-- Large project structures (>1000 folders) may take time to generate
-- Some antivirus software may flag the executable (false positive)
+## Changes in 1.0 (from 0.3)
 
-## 💡 Tips & Best Practices
-
-### For Teams
-1. **Standardize Templates**: Use consistent folder structures across projects
-2. **Asset Naming**: Follow clear naming conventions
-3. **Version Control**: Keep template files in version control
-4. **Documentation**: Use README files in project folders
-
-### For Freelancers
-1. **Client Organization**: Create separate root folders for different clients
-2. **Archive Strategy**: Move completed projects to archive folders
-3. **Backup Planning**: Ensure render and source folders are backed up
-4. **Asset Reuse**: Maintain a library of reusable assets
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👤 Author
-
-**Remit Otkin**
-- GitHub: [@RemitOtkin](https://github.com/RemitOtkin)
-- Email: damir@hamza.ru
-
-## 🙏 Acknowledgments
-
-- PyQt5 team for the excellent GUI framework
-- Motion design community for workflow insights
-- Beta testers and early adopters
-
+- Rebuilt on PySide6 / Qt 6: native high-DPI scaling replaces the custom adaptive-scaling code.
+- New single-screen layout with a live preview; results show inline instead of in a popup.
+- Template files are versioned: `<Project>_v001.<ext>`.
+- One structure definition drives preview, folders and README (previously three separate copies).
+- Project creation is instant (the artificial progress delays are gone) and rolls back cleanly if something fails.
+- Live validation: invalid characters, existing folder, missing location.
+- Full English/Russian translation, switchable instantly from the header.
+- Settings moved to AppData; icons and templates load correctly from a built `.exe`.
 
 ---
 
-<div align="center">
-<strong>⭐ Star this project if it helps you organize your motion design workflow! ⭐</strong>
-</div>
+Remit Otkin · [GitHub](https://github.com/RemitOtkin)
