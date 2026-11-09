@@ -2,7 +2,7 @@
 
 A small desktop app that creates a clean, consistent folder structure for motion design and video projects, with ready-to-open project files for After Effects, Cinema 4D, Premiere Pro, Houdini and Blender.
 
-![Project Creator — new project with a live folder preview]
+![Renaming a folder in the preview](docs/editing.png)
 
 - Live preview of exactly what will be created
 - One click (or Ctrl+Enter) creates the folders, a `README.md`, and versioned template files such as `MyProject_v001.aep`
@@ -36,8 +36,6 @@ The preview on the right is built from the same definition the app writes to dis
 ## Editing the structure
 
 Edit the folders right in the preview:
-
-![Renaming a folder in the preview](docs/editing.png)
 
 | Action | How |
 |---|---|
